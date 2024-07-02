@@ -1,0 +1,14 @@
+task: mixture-arc-challenge
+dataset_path: cjiao/arc_challenge_100
+dataset_name: default
+output_type: loglikelihood
+test_split: test
+doc_to_text:  "{{text}}"
+doc_to_target: "{{target}}"
+should_decontaminate: false
+metric_list:
+  - metric: perplexity
+    aggregation: perplexity
+    higher_is_better: false
+metadata:
+  version: 1.0
