@@ -148,7 +148,7 @@ def get_dataloader(
 
     # tokenizes each row in dataset
     def tokenize_function(examples):
-        if split == 'test':
+        if split == 'test' and use_conditional:
             inputs = [examples["text"][i] + '\n' + examples["target"][i] for i in range(len(examples['text']))]
         else:
             inputs = examples["text"]
