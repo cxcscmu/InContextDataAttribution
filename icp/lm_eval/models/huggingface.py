@@ -1080,6 +1080,7 @@ class HFLM(LM):
 
                 # acc
                 answer = (float(logits.sum()), bool(max_equal))
+                #answer = (float(torch.mean(logits)), bool(max_equal))
                 res.append(answer)
                 self.cache_hook.add_partial("loglikelihood", cache_key, answer)
 

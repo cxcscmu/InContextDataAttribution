@@ -80,13 +80,14 @@ def get_loaders(
     n_train_samples: int = None,
     n_test_samples: int = None,
     use_conditional: bool = False,
-    max_length: int = 512, 
+    max_length: int = 1024, 
+    load_local: bool = False
 ) -> Tuple[
     torch.utils.data.DataLoader,
     torch.utils.data.DataLoader,
 ]:
     train_dataset = load_train_dataset(train_file, n_train_samples=n_train_samples)
-    test_dataset = load_test_dataset(test_dataset, n_test_samples=n_test_samples)
+    test_dataset = load_test_dataset(test_dataset, load_local, n_test_samples=n_test_samples)
 
     pretrain_loader = get_dataloader(
         dataset=train_dataset,
@@ -114,11 +115,17 @@ def sample_dataset(dataset, n):
     dataset = dataset.select(indices)
     return dataset
 
-def load_test_dataset(dataset, n_test_samples=None):
-    dataset = load_dataset(dataset, split="test")
+def load_test_dataset(dataset, load_local, n_test_samples=None):
 
-    if n_test_samples is not None:
-        dataset = sample_dataset(dataset, n_test_samples)
+    if load_local:
+        dataset = datasets.load_dataset(
+            "json", data_files=dataset
+        )
+    else:
+        dataset = load_dataset(dataset, split="test")
+
+        if n_test_samples is not None:
+            dataset = sample_dataset(dataset, n_test_samples)
     
     return dataset
 
@@ -148,8 +155,9 @@ def get_dataloader(
 
     # tokenizes each row in dataset
     def tokenize_function(examples):
-        if split == 'test' and use_conditional:
-            inputs = [examples["text"][i] + '\n' + examples["target"][i] for i in range(len(examples['text']))]
+        if 'target' in examples:
+            queries, targets = examples["text"], examples["target"]
+            inputs = [f"{queries[i]}\n{targets[i]}" for i in range(len(examples['text']))]
         else:
             inputs = examples["text"]
 
@@ -165,7 +173,6 @@ def get_dataloader(
         input_lengths = np.sum(tokenize_output['attention_mask'], axis=1)
 
         for i in range(len(labels)):
-            input_length = input_lengths[i]
             labels[i] = [tok if tok != tokenizer.pad_token_id else ignore_token for tok in labels[i]]
 
             if split == 'test' and use_conditional:

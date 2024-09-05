@@ -6,12 +6,16 @@ import torch.nn as nn
 from src.abstract_computer import AbstractComputer
 from src.abstract_task import AbstractTask
 
+from tqdm import tqdm
+
 class GradientSimilarityComputer(AbstractComputer):
     def __init__(
         self,
         model: nn.Module,
         task: AbstractTask,
         metric: str = "dot",
+        grad_approx: str = "",
+        grad_clip: bool = False
     ) -> None:
         """Initializes the `GradientSimilarityComputer` class.
 
@@ -29,6 +33,9 @@ class GradientSimilarityComputer(AbstractComputer):
                 and "cos". Defaults to "dot".
         """
         super().__init__(model=model, task=task, logger_name=self.__class__.__name__)
+
+        self.grad_approx = grad_approx
+        self.grad_clip = grad_clip
 
         self.func_params = dict(self.model.named_parameters())
         self.func_buffers = dict(self.model.named_buffers())
@@ -57,7 +64,9 @@ class GradientSimilarityComputer(AbstractComputer):
             raise AttributeError(error_msg)
 
     def _compute_similarity(
-        self, grads_dict1: Dict[str, torch.Tensor], grads_dict2: Dict[str, torch.Tensor]
+        self, 
+        grads_dict1: Dict[str, torch.Tensor], 
+        grads_dict2: Dict[str, torch.Tensor]
     ) -> torch.Tensor:
         """Computes the pairwise similarities between gradients in `grads_dict1` and `grads_dict2`."""
         # Perform lazy initializations.
@@ -68,11 +77,27 @@ class GradientSimilarityComputer(AbstractComputer):
             for name in self.supported_param_names:
                 if isinstance(total_score, float):
                     score = torch.matmul(grads_dict1[name], grads_dict2[name].t())
-                    score = torch.log(score)                    
+                    
+                    if self.grad_approx == 'log':
+                        score = torch.log(score)
+                    else:
+                        sign = score.sign()
+                        score = score.abs_()
+                        score = torch.log(score)
+                        score *= sign
+
                     total_score = torch.nan_to_num(score, nan=0.0, posinf=0.0, neginf=0.0) # deal with numeric complications
                 else:                    
                     score = torch.matmul(grads_dict1[name], grads_dict2[name].t())
-                    score = torch.log(score)                    
+
+                    if self.grad_approx == 'log':
+                        score = torch.log(score)
+                    else:
+                        sign = score.sign()
+                        score = score.abs_()
+                        score = torch.log(score)
+                        score *= sign
+
                     score = torch.nan_to_num(score, nan=0.0, posinf=0.0, neginf=0.0) # deal with numeric complications
                     total_score.add_(score)
 
@@ -109,10 +134,11 @@ class GradientSimilarityComputer(AbstractComputer):
 
                     grad = grads_dict[key]
 
-                    # clamp gradients, help with exploding numbers
-                    sign = grad.sign()
-                    grad = grad.abs_().clamp_(0.0001, 1)
-                    grad *= sign
+                    if self.grad_clip:
+                        # clamp gradients, help with exploding numbers
+                        sign = grad.sign()
+                        grad = grad.abs_().clamp_(0.0001, 1)
+                        grad *= sign
                     
                     reshaped_grads_dict[key] = grad.reshape(batch_size, -1)
 
@@ -165,7 +191,7 @@ class GradientSimilarityComputer(AbstractComputer):
         )
 
         num_processed_test = 0
-        for test_batch in test_loader:
+        for test_batch in tqdm(test_loader):
             test_batch_size = self.task.get_batch_size(test_batch)
             reshaped_test_grads_dict = self._get_reshaped_grads_dict(
                 test_batch, use_measurement=True

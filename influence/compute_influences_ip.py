@@ -17,6 +17,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--model_name", type=str, help="name of model or path to model directory")
 parser.add_argument("--checkpoints", nargs="*", type=str, default=[], help="list of paths to checkpoints of model to use")
 parser.add_argument("--lrs", nargs="*", type=float, default=[], help="list of learning rates for each checkpoint")
+parser.add_argument('--model_dtype', type=str, default='float16', help="float16|float32")
 
 # data arguments
 parser.add_argument("--test_dataset", type=str, help="path to test data")
@@ -25,12 +26,16 @@ parser.add_argument("--n_train_samples", type=int, default=None, help="maximum n
 parser.add_argument("--n_test_samples", type=int, default=None, help="maximum number of samples from test dataset")
 parser.add_argument("--train_batch_size", type=int, help="train batch size")
 parser.add_argument("--test_batch_size", type=int, help="test batch size")
+parser.add_argument('--load_local', action='store_false', help="load local test set")
 
 # other arguments
 parser.add_argument("--metric", type=str, default="dot", help="dot or cos for computing gradient similarity")
 parser.add_argument("--use_conditional", action="store_true", help="conditional cross-entropy")
 parser.add_argument("--max_length", type=int, default=512, help="maximum length of ")
 parser.add_argument("--outfile", type=str, default=None, help="")
+parser.add_argument("--grad_approx", type=str, default="sign_log", help="log|sign_log|none")
+parser.add_argument('--grad_clip', action='store_true')
+
 args = parser.parse_args()
 
 
@@ -51,9 +56,13 @@ def prepare_everything():
         n_test_samples=args.n_test_samples,
         use_conditional=args.use_conditional,
         max_length=args.max_length,
+        load_local=load_local,
     )
 
     model = construct_model(model_name=args.model_name)
+    if args.model_dtype == 'float32':
+        model = model.float()
+
     model.eval()
 
     task = LanguageModelTask(device=DEVICE, layers=None)
@@ -68,6 +77,8 @@ def compute_if() -> None:
         model=model,
         task=task,
         metric=args.metric,
+        grad_approx=args.grad_approx,
+        grad_clip=args.grad_clip,
     )
 
     scores = tracinComputer.compute_scores_with_loader(
@@ -75,6 +86,7 @@ def compute_if() -> None:
         train_loader=eval_train_loader,
         checkpoints=args.checkpoints,
         lrs=args.lrs,
+        model_dtype=args.model_dtype,
     )
 
     torch.save(scores, args.outfile)

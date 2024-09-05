@@ -1,0 +1,15 @@
+task: instruction
+dataset_path: json
+dataset_kwargs:
+  data_files: {"test": /home/cljiao/heuristic/data/0.json}
+dataset_name: default
+test_split: test
+output_type: loglikelihood
+doc_to_text: "{{text}}"
+doc_to_target: "{{target}}"
+metric_list:
+  - metric: perplexity
+    aggregation: perplexity
+    higher_is_better: false
+metadata:
+  version: 2.0

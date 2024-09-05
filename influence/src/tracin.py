@@ -39,6 +39,8 @@ class TracinComputer(AbstractComputer):
         model: nn.Module,
         task: AbstractTask,
         metric: str = "cos",
+        grad_approx: str = "sign_log",
+        grad_clip: bool = False,
     ):
         """Initializes the `TracIn` class.
 
@@ -63,10 +65,18 @@ class TracinComputer(AbstractComputer):
             self.original_state_dict[name] = tensor.cpu()
 
         self.metric = metric
+        self.grad_approx = grad_approx
+        self.grad_clip = grad_clip
 
-    def _load_checkpoint(self, checkpoint: str) -> None:
+    def _load_checkpoint(self, checkpoint: str, model_dtype: str = 'float16') -> None:
         """Given the path to the checkpoint, load the parameters and buffers."""
-        self.model = LanguageModel(checkpoint).to(self.task.device)
+
+        self.model = LanguageModel(checkpoint)
+
+        if model_dtype == 'float32':
+            self.model = self.model.float()
+
+        self.model = self.model.to(self.task.device)
         self.model.eval()
 
     def _reload_original_params(self) -> None:
@@ -80,6 +90,7 @@ class TracinComputer(AbstractComputer):
         batch2: Any,
         checkpoints: List[str],
         lrs: Union[List[float], float],
+        model_dtype: str = 'float16'
     ) -> torch.Tensor:
         """Compute pairwise influence scores between data points in `batch1` and `batch2`.
 
@@ -104,11 +115,13 @@ class TracinComputer(AbstractComputer):
             lrs = [lrs for _ in range(len(checkpoints))]
 
         for i, ckpt in enumerate(checkpoints):
-            self._load_checkpoint(ckpt)
+            self._load_checkpoint(ckpt, model_dtype)
             gsc = GradientSimilarityComputer(
                 model=self.model,
                 task=self.task,
                 metric=self.metric,
+                grad_approx=self.grad_approx,
+                grad_clip=self.grad_clip,
             )
             score_table += lrs[i] * gsc.compute_scores_with_batch(
                 batch1=batch1, batch2=batch2
@@ -125,6 +138,7 @@ class TracinComputer(AbstractComputer):
         train_loader: torch.utils.data.DataLoader,
         checkpoints: List[str],
         lrs: Union[int, float, List[int], List[float]] = 1.0,
+        model_dtype: str = 'float16'
     ) -> torch.Tensor:
         """Compute pairwise similarity scores between `test_loader` and `train_loader`.
 
@@ -153,13 +167,15 @@ class TracinComputer(AbstractComputer):
             lrs = [lrs for _ in range(len(checkpoints))]
 
         for i, ckpt in enumerate(checkpoints):
-            self._load_checkpoint(ckpt)
+            self._load_checkpoint(ckpt, model_dtype)
             gsc = GradientSimilarityComputer(
                 model=self.model,
                 task=self.task,
                 metric=self.metric,
+                grad_approx=self.grad_approx,
+                grad_clip=self.grad_clip,
             )
-            scores =  gsc.compute_scores_with_loader(
+            scores = gsc.compute_scores_with_loader(
                 test_loader=test_loader, train_loader=train_loader
             )
             score_table += lrs[i] * scores
@@ -174,6 +190,7 @@ class TracinComputer(AbstractComputer):
         loader: torch.utils.data.DataLoader,
         checkpoints: List[str],
         lrs: Union[int, float, List[int], List[float]] = 1.0,
+        model_dtype: str = 'float16',
     ) -> torch.Tensor:
         """Compute self-similarity scores of all data points in `loader`.
 
@@ -197,11 +214,13 @@ class TracinComputer(AbstractComputer):
             lrs = [lrs for _ in range(len(checkpoints))]
 
         for i, ckpt in enumerate(checkpoints):
-            self._load_checkpoint(ckpt)
+            self._load_checkpoint(ckpt, model_dtype)
             gsc = GradientSimilarityComputer(
                 model=self.model,
                 task=self.task,
                 metric=self.metric,
+                grad_approx=self.grad_approx,
+                grad_clip=self.grad_clip,
             )
 
             scores = gsc.compute_self_scores_with_loader(loader=loader)
