@@ -19,7 +19,7 @@ conda activate icdata
 
 base_dir=$PWD
 cd influence
-for ((i = 0 ; i < 10 ; i++ ));
+for ((i = 0 ; i < 1 ; i++ ));
 do
 python compute_influences_ip.py \
     --train_batch_size 1 \
@@ -27,14 +27,15 @@ python compute_influences_ip.py \
     --model_name EleutherAI/pythia-1b-deduped \
     --checkpoints EleutherAI/pythia-1b-deduped \
     --lrs 1 \
-    --test_dataset /home/cljiao/heuristic/data/$i.json \
-    --train_file "/home/cljiao/heuristic/data/${i}_same_tasks.tsv" \
+    --test_dataset /home/cljiao/heuristic-data/data/$i.json \
+    --train_file "/home/cljiao/heuristic-data/data/${i}_same_tasks.tsv" \
     --outfile "/home/cljiao/InContextDataValuation/outputs/infl_scores/${i}_same_tasks.pt" \
     --grad_approx sign_log \
     --grad_clip \
     --max_length 1024 \
     --model_dtype float32 \
-    --use_conditional
+    --use_conditional \
+    --load_local
 done
 
 # --test_dataset cjiao/nuggets-kmeans-100 \

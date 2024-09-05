@@ -32,7 +32,7 @@ touch ${task_conftig_path}
 echo "task: instruction
 dataset_path: json
 dataset_kwargs:
-  data_files: {\"test\": /home/cljiao/heuristic/data/$i.json}
+  data_files: {\"test\": /home/cljiao/heuristic-data/data/$i.json}
 dataset_name: default
 test_split: test
 output_type: loglikelihood
@@ -54,6 +54,6 @@ accelerate launch --main_process_port ${rand} run_eval.py \
     --batch_size 32 \
     --split TEST \
     --incontext_type iterate \
-    --incontext_file "/home/cljiao/heuristic/data/${i}_same_tasks.tsv" \
+    --incontext_file "/home/cljiao/heuristic-data/data/${i}_same_tasks.tsv" \
     --output_path "/home/cljiao/InContextDataValuation/outputs/ll_scores/${i}_same_tasks.json"
 done

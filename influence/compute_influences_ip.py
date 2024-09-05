@@ -26,7 +26,7 @@ parser.add_argument("--n_train_samples", type=int, default=None, help="maximum n
 parser.add_argument("--n_test_samples", type=int, default=None, help="maximum number of samples from test dataset")
 parser.add_argument("--train_batch_size", type=int, help="train batch size")
 parser.add_argument("--test_batch_size", type=int, help="test batch size")
-parser.add_argument('--load_local', action='store_false', help="load local test set")
+parser.add_argument('--load_local', action='store_true', help="load local test set")
 
 # other arguments
 parser.add_argument("--metric", type=str, default="dot", help="dot or cos for computing gradient similarity")
@@ -56,7 +56,7 @@ def prepare_everything():
         n_test_samples=args.n_test_samples,
         use_conditional=args.use_conditional,
         max_length=args.max_length,
-        load_local=load_local,
+        load_local=args.load_local,
     )
 
     model = construct_model(model_name=args.model_name)

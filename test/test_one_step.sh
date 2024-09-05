@@ -26,8 +26,8 @@ python pretrain/one_step_trainer.py \
        --devices 1 \
        --model_name pythia-1b \
        --model_ckpt /data/user_data/cljiao/cont-pretrain/pythia-1b-deduped \
-       --train_data_path /home/cljiao/heuristic/data/${i}.json \
-       --val_data_path /home/cljiao/heuristic/data/${i}_same_tasks.json \
+       --train_data_path /home/cljiao/heuristic-data/data/${i}.json \
+       --val_data_path /home/cljiao/heuristic-data/data/${i}_same_tasks.json \
        --out_dir /home/cljiao/InContextDataValuation/outputs/ft_scores/${i}_same_tasks \
        --max_seq_length 1024 \
        --eval_conditional true \

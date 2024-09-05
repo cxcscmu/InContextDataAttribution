@@ -118,14 +118,13 @@ def sample_dataset(dataset, n):
 def load_test_dataset(dataset, load_local, n_test_samples=None):
 
     if load_local:
-        dataset = datasets.load_dataset(
-            "json", data_files=dataset
-        )
+        dataset = load_dataset("json", data_files={'test': dataset})
+        dataset = dataset['test']
     else:
         dataset = load_dataset(dataset, split="test")
 
-        if n_test_samples is not None:
-            dataset = sample_dataset(dataset, n_test_samples)
+    if n_test_samples is not None:
+        dataset = sample_dataset(dataset, n_test_samples)
     
     return dataset
 
