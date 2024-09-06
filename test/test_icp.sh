@@ -3,7 +3,7 @@
 #SBATCH --output=/home/cljiao/InContextDataValuation/logs/icp-test.out
 #SBATCH --error=/home/cljiao/InContextDataValuation/logs/icp-test.err
 #SBATCH --gres=gpu:A6000:1
-#SBATCH --time=1:00:00
+#SBATCH --time=5:00:00
 #SBATCH --mem=16GB
 #SBATCH --partition=general
 #SBATCH --mail-type=begin
@@ -21,7 +21,7 @@ base_dir=${PWD}
 cd icp
 
 rand=$(shuf -i 20000-65530 -n 1)
-for ((i = 0 ; i < 1 ; i++ ));
+for ((i = 0 ; i < 50 ; i++ ));
 do
 
 task_config_path=${base_dir}/icp/lm_eval/tasks/instruction/instruction.yaml

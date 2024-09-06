@@ -1,7 +1,7 @@
 task: instruction
 dataset_path: json
 dataset_kwargs:
-  data_files: {"test": /home/cljiao/heuristic/data/0.json}
+  data_files: {"test": /home/cljiao/heuristic-data/data/49.json}
 dataset_name: default
 test_split: test
 output_type: loglikelihood

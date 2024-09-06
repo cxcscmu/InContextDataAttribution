@@ -3,7 +3,7 @@
 #SBATCH --output=/home/cljiao/InContextDataValuation/logs/one-step-test.out
 #SBATCH --error=/home/cljiao/InContextDataValuation/logs/one-step-test.err
 #SBATCH --gres=gpu:A6000:1
-#SBATCH --time=3:00:00
+#SBATCH --time=5:00:00
 #SBATCH --mem=16GB
 #SBATCH --partition=general
 #SBATCH --mail-type=begin
@@ -20,14 +20,14 @@ conda activate icdata
 base_dir=$PWD
 cd one_step_train
 
-for ((i = 0 ; i < 1 ; i++ ));
+for ((i = 0 ; i < 25 ; i++ ));
 do
 python one_step_trainer.py \
        --devices 1 \
        --model_name pythia-1b \
        --model_ckpt /data/user_data/cljiao/cont-pretrain/pythia-1b-deduped \
-       --train_data_path /home/cljiao/heuristic-data/data/${i}.json \
-       --val_data_path /home/cljiao/heuristic-data/data/${i}_same_tasks.json \
+       --train_data_path /home/cljiao/heuristic-data/data/${i}_same_tasks.json \
+       --val_data_path /home/cljiao/heuristic-data/data/${i}.json \
        --out_dir /home/cljiao/InContextDataValuation/outputs/ft_scores/${i}_same_tasks \
        --max_seq_length 1024 \
        --eval_conditional true \
