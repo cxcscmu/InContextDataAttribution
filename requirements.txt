@@ -2,6 +2,8 @@ accelerate
 evaluate
 datasets
 jsonlines
+jsonargparse
+lightning
 numexpr
 peft
 pybind11

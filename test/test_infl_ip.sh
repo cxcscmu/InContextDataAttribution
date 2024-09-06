@@ -3,7 +3,7 @@
 #SBATCH --output=/home/cljiao/InContextDataValuation/logs/infl-test.out
 #SBATCH --error=/home/cljiao/InContextDataValuation/logs/infl-test.err
 #SBATCH --gres=gpu:A6000:1
-#SBATCH --time=10:00:00
+#SBATCH --time=3:00:00
 #SBATCH --mem=16GB
 #SBATCH --partition=general
 #SBATCH --mail-type=begin
