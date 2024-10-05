@@ -1,47 +1,50 @@
-name="kmeans"
-sbatch --job-name=$name \
-       --gres=gpu:A6000:4 \
-       --time=1:00:00 \
-       --output="/home/cljiao/InContextDataValuation/logs/$name.out" \
-       --error="/home/cljiao/InContextDataValuation/logs/$name.err" \
-       icp_template.sh \
-       kmeans100 \
-       EleutherAI/pythia-12b-deduped \
-       "/home/cljiao/InContextDataValuation/data/prompts/kmeans100.txt" \
-       "/data/user_data/cljiao/one_step_12b/ll_scores/kmeans.json"
+#!/bin/bash
+#SBATCH --job-name=icp-all
+#SBATCH --output=/home/cljiao/InContextDataValuation/logs/icp-all.out
+#SBATCH --error=/home/cljiao/InContextDataValuation/logs/icp-all.err
+#SBATCH --gres=gpu:A6000:1
+#SBATCH --time=5:00:00
+#SBATCH --mem=16GB
+#SBATCH --partition=general
+#SBATCH --mail-type=begin
+#SBATCH --mail-type=end
+#SBATCH --mail-type=fail
+#SBATCH --mail-user=cljiao@andrew.cmu.edu
+#SBATCH --exclude=babel-3-19
 
-name="minipile"
-sbatch --job-name=$name \
-       --gres=gpu:A6000:4 \
-       --time=1:00:00 \
-       --output="/home/cljiao/InContextDataValuation/logs/$name.out" \
-       --error="/home/cljiao/InContextDataValuation/logs/$name.err" \
-       icp_template.sh \
-       minipile \
-       EleutherAI/pythia-12b-deduped \
-       "/data/user_data/cljiao/data-calibration/minipile-valid-pythia-1b-256-n100.tsv" \
-       "/data/user_data/cljiao/one_step_12b/ll_scores/minipile.json"
+: '
+name=icp_all
+task="sciq_Direct_Question_Closed_Book_"
+bash icp_template.sh \
+     pretrained=EleutherAI/pythia-1b-deduped \
+     /home/cljiao/heuristic-data/data/${task}.tsv \
+     /home/cljiao/InContextDataValuation/outputs/ll_scores \
+     ${task}
 
-name="kmeans-minipile"
-sbatch --job-name=$name \
-       --gres=gpu:A6000:4 \
-       --time=1:00:00 \
-       --output="/home/cljiao/InContextDataValuation/logs/$name.out" \
-       --error="/home/cljiao/InContextDataValuation/logs/$name.err" \
-       icp_template.sh \
-       kmeans100 \
-       EleutherAI/pythia-12b-deduped \
-       "/data/user_data/cljiao/data-calibration/minipile-valid-pythia-1b-256-n100.tsv" \
-       "/data/user_data/cljiao/one_step_12b/ll_scores/kmeans-minipile.json"
+task="social_i_qa_Generate_answer"
+bash icp_template.sh \
+     pretrained=EleutherAI/pythia-1b-deduped \
+     /home/cljiao/heuristic-data/data/${task}.tsv \
+     /home/cljiao/InContextDataValuation/outputs/ll_scores \
+     ${task}
 
-name="mixture-minipile"
-sbatch --job-name=$name \
-       --gres=gpu:A6000:4 \
-       --time=1:00:00 \
-       --output="/home/cljiao/InContextDataValuation/logs/$name.out" \
-       --error="/home/cljiao/InContextDataValuation/logs/$name.err" \
-       icp_template.sh \
-       mixture \
-       EleutherAI/pythia-12b-deduped \
-       "/data/user_data/cljiao/data-calibration/minipile-valid-pythia-1b-256-n100.tsv" \
-       "/data/user_data/cljiao/one_step_12b/ll_scores/mixture-minipile.json"
+task="cosmos_qa_context_answer_to_question"
+bash icp_template.sh \
+     pretrained=EleutherAI/pythia-1b-deduped \
+     /home/cljiao/heuristic-data/data/${task}.tsv \
+     /home/cljiao/InContextDataValuation/outputs/ll_scores \
+     ${task}
+
+task="yelp_review_full_based_on_that"
+bash icp_template.sh \
+     pretrained=EleutherAI/pythia-1b-deduped \
+     /home/cljiao/heuristic-data/data/${task}.tsv \
+     /home/cljiao/InContextDataValuation/outputs/ll_scores \
+     ${task}
+'
+
+task="qa_dataset"
+bash icp_template_alt.sh \
+     pretrained=EleutherAI/pythia-1b-deduped \
+     /home/cljiao/heuristic-data/data/${task}.tsv \
+     /home/cljiao/InContextDataValuation/outputs/ll_kmeans/${task}.json

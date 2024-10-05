@@ -198,6 +198,7 @@ class GradientSimilarityComputer(AbstractComputer):
             )
 
             num_processed_train = 0
+            #for train_batch in tqdm(train_loader):
             for train_batch in train_loader:
                 train_batch_size = self.task.get_batch_size(train_batch)
                 reshaped_train_grads_dict = self._get_reshaped_grads_dict(
@@ -207,6 +208,7 @@ class GradientSimilarityComputer(AbstractComputer):
                 current_score = self._compute_similarity(
                     reshaped_test_grads_dict, reshaped_train_grads_dict
                 )
+                #print(current_score)
 
                 score_table[
                     num_processed_test : num_processed_test + test_batch_size,

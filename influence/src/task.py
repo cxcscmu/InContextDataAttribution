@@ -7,22 +7,8 @@ import torch.nn.functional as F
 from src.abstract_task import AbstractTask
 import sys
 import numpy as np
-from transformers import AutoTokenizer
 
 BATCH_DTYPE = Dict[str, torch.Tensor]
-
-tokenizer = AutoTokenizer.from_pretrained('EleutherAI/pythia-1b-deduped')
-
-def detach_numpy(tensor):
-    tensor = tensor.detach().cpu()
-    if torch._C._functorch.is_gradtrackingtensor(tensor):
-        tensor = torch._C._functorch.get_unwrapped(tensor)
-        if torch._C._functorch.is_batchedtensor(tensor):
-            tensor = torch._C._functorch.get_unwrapped(tensor)
-            tensor = np.array(tensor.storage().tolist()).reshape(tensor.shape)
-            return tensor
-    
-    raise ValueError('Tensor can\'t be detached!')
 
 class LanguageModelTask(AbstractTask):
     def __init__(
@@ -141,25 +127,38 @@ class LanguageModelTask(AbstractTask):
         total_modules = []
 
         if self.layers is None:
-            layer_idxs = list(range(16))
+            #layer_idxs = list(range(16))
+            #layer_idxs = list(range(28))
+            layer_idxs = list(range(0, 32, 4))
         else:
             layer_idxs = self.layers
+
+        
+        """
+        model.model.layers.27.self_attn.q_proj
+        model.model.layers.27.self_attn.k_proj
+        model.model.layers.27.self_attn.v_proj
+        """
 
         # Add attention layers:
         for i in layer_idxs:
             total_modules.append(f"model.gpt_neox.layers.{i}.attention.query_key_value")
             total_modules.append(f"model.gpt_neox.layers.{i}.attention.dense")
+            #total_modules.append(f"model.model.layers.{i}.self_attn.o_proj")
 
         # Add MLP layers:``
         for i in layer_idxs:
             total_modules.append(f"model.gpt_neox.layers.{i}.mlp.dense_h_to_4h")
             total_modules.append(f"model.gpt_neox.layers.{i}.mlp.dense_4h_to_h")
+            #total_modules.append(f"model.model.layers.{i}.mlp.up_proj")
+            #total_modules.append(f"model.model.layers.{i}.mlp.down_proj")
         
         #total_modules = ['model.embed_out']
-
+        #total_modules = ['model.lm_head']
         return total_modules
 
     def representation_module(self) -> str:
+        #return "model.model.norm"
         return "model.gpt_neox.final_layer_norm"
 
     def get_activation_masks(self, batch: Any) -> Optional[torch.Tensor]:

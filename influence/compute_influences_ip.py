@@ -60,6 +60,7 @@ def prepare_everything():
     )
 
     model = construct_model(model_name=args.model_name)
+    #model.model.resize_token_embeddings(len(tokenizer))
     if args.model_dtype == 'float32':
         model = model.float()
 
@@ -67,11 +68,11 @@ def prepare_everything():
 
     task = LanguageModelTask(device=DEVICE, layers=None)
 
-    return model.to(DEVICE), train_loader, test_loader, task
+    return model.to(DEVICE), train_loader, test_loader, task, tokenizer
 
 
 def compute_if() -> None:
-    model, eval_train_loader, valid_loader, task = prepare_everything()
+    model, eval_train_loader, valid_loader, task, tokenizer = prepare_everything()
 
     tracinComputer = TracinComputer(
         model=model,
@@ -87,6 +88,7 @@ def compute_if() -> None:
         checkpoints=args.checkpoints,
         lrs=args.lrs,
         model_dtype=args.model_dtype,
+        tokenizer=tokenizer
     )
 
     torch.save(scores, args.outfile)

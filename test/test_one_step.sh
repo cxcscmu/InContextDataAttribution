@@ -10,6 +10,7 @@
 #SBATCH --mail-type=end
 #SBATCH --mail-type=fail
 #SBATCH --mail-user=cljiao@andrew.cmu.edu
+#SBATCH --exclude=babel-3-19
 
 set -x
 
@@ -19,21 +20,42 @@ conda activate icdata
 
 base_dir=$PWD
 cd one_step_train
-
-for ((i = 0 ; i < 25 ; i++ ));
+: '
+for ((i = 0 ; i < 5 ; i++ ));
 do
 python one_step_trainer.py \
        --devices 1 \
        --model_name pythia-1b \
        --model_ckpt /data/user_data/cljiao/cont-pretrain/pythia-1b-deduped \
-       --train_data_path /home/cljiao/heuristic-data/data/${i}_same_tasks.json \
+       --train_data_path /home/cljiao/heuristic-data/minipile-train-pythia-1b-256-n100000.json \
        --val_data_path /home/cljiao/heuristic-data/data/${i}.json \
-       --out_dir /home/cljiao/InContextDataValuation/outputs/ft_scores/${i}_same_tasks \
+       --out_dir /home/cljiao/InContextDataValuation/outputs/minipile_ft_scores/${i}_minipile \
        --max_seq_length 1024 \
        --eval_conditional true \
        --fsdp false \
        --load_local_data true
 done
+python one_step_trainer.py \
+       --devices 1 \
+       --model_name pythia-1b \
+       --model_ckpt /data/user_data/cljiao/cont-pretrain/pythia-1b-deduped \
+       --train_data_path cjiao/minipile-valid-pythia-1b-256-n100 \
+       --val_data_path cjiao/nuggets-kmeans-100 \
+       --out_dir /home/cljiao/InContextDataValuation/outputs/ft_replicate/kmeans_minipile \
+       --max_seq_length 1024 \
+       --fsdp false
+'
+
+python one_step_trainer.py \
+       --devices 1 \
+       --model_name pythia-1b \
+       --model_ckpt /data/user_data/cljiao/cont-pretrain/pythia-1b-deduped \
+       --train_data_path /home/cljiao/heuristic-data/data/sciq_Direct_Question_Closed_Book_.json \
+       --val_data_path /home/cljiao/heuristic-data/nuggets-kmeans-100.json \
+       --out_dir /home/cljiao/InContextDataValuation/outputs/ft_replicate/kmeans_sciq \
+       --max_seq_length 1024 \
+       --fsdp false \
+       --load_local_data true
 
 #results_file="/data/user_data/cljiao/paper_data/one-finetune-2e-5/$i.pt"
 #if ! test -f $results_file; then

@@ -3,13 +3,14 @@
 #SBATCH --output=/home/cljiao/InContextDataValuation/logs/infl-test.out
 #SBATCH --error=/home/cljiao/InContextDataValuation/logs/infl-test.err
 #SBATCH --gres=gpu:A6000:1
-#SBATCH --time=5:00:00
+#SBATCH --time=1-00:00:00
 #SBATCH --mem=16GB
 #SBATCH --partition=general
 #SBATCH --mail-type=begin
 #SBATCH --mail-type=end
 #SBATCH --mail-type=fail
 #SBATCH --mail-user=cljiao@andrew.cmu.edu
+#SBATCH --exclude=babel-3-19
 
 set -x
 
@@ -19,7 +20,7 @@ conda activate icdata
 
 base_dir=$PWD
 cd influence
-for ((i = 0 ; i < 50 ; i++ ));
+for ((i = 0 ; i < 5 ; i++ ));
 do
 python compute_influences_ip.py \
     --train_batch_size 1 \
@@ -27,9 +28,9 @@ python compute_influences_ip.py \
     --model_name EleutherAI/pythia-1b-deduped \
     --checkpoints EleutherAI/pythia-1b-deduped \
     --lrs 1 \
-    --test_dataset /home/cljiao/heuristic-data/data/$i.json \
-    --train_file "/home/cljiao/heuristic-data/data/${i}_different_tasks.tsv" \
-    --outfile "/home/cljiao/InContextDataValuation/outputs/infl_scores/${i}_different_tasks.pt" \
+    --test_dataset /home/cljiao/heuristic-data/data/${i}.json \
+    --train_file "/home/cljiao/heuristic-data/minipile-train-pythia-1b-256-n100000.tsv" \
+    --outfile "/home/cljiao/InContextDataValuation/outputs/minipile_infl_scores/${i}_minipile.pt" \
     --grad_approx sign_log \
     --grad_clip \
     --max_length 1024 \

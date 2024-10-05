@@ -1,16 +1,31 @@
+#!/bin/bash
+#SBATCH --job-name=icp-test
+#SBATCH --output=/home/cljiao/InContextDataValuation/logs/icp-test.out
+#SBATCH --error=/home/cljiao/InContextDataValuation/logs/icp-test.err
+#SBATCH --gres=gpu:A6000:1
+#SBATCH --time=5:00:00
+#SBATCH --mem=16GB
+#SBATCH --partition=general
+#SBATCH --mail-type=begin
+#SBATCH --mail-type=end
+#SBATCH --mail-type=fail
+#SBATCH --mail-user=cljiao@andrew.cmu.edu
+#SBATCH --exclude=babel-3-19
+
 set -x
 
 __conda_setup="$('/home/cljiao/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
 eval "$__conda_setup"
 conda activate icdata
 
-cd /home/cljiao/InContextDataValuation/icp
+base_dir=${PWD}
+cd icp
 
 rand=$(shuf -i 20000-65530 -n 1)
-for ((i = 0 ; i < 50 ; i++ ));
+for ((i = 0 ; i < 5 ; i++ ));
 do
 
-task_config_path=/home/cljiao/InContextDataValuation/icp/lm_eval/tasks/instruction/instruction.yaml
+task_config_path=${base_dir}/icp/lm_eval/tasks/instruction/instruction.yaml
 rm ${task_config_path}
 touch ${task_conftig_path}
 
@@ -35,11 +50,11 @@ accelerate launch --main_process_port ${rand} run_eval.py \
     --model hf \
     --tasks instruction \
     --verbosity DEBUG \
-    --model_args ${1} \
+    --model_args pretrained=EleutherAI/pythia-1b-deduped \
     --device cuda \
     --batch_size 32 \
     --split TEST \
     --incontext_type iterate \
-    --incontext_file ${2} \
-    --output_path ${3}/${i}_${4}.json
+    --incontext_file "/home/cljiao/heuristic-data/minipile-train-pythia-1b-256-n100000.tsv" \
+    --output_path "/home/cljiao/InContextDataValuation/outputs/minipile_ll_scores/${i}_minipile.json"
 done

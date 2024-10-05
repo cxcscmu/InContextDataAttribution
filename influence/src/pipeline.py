@@ -156,6 +156,18 @@ def get_dataloader(
     def tokenize_function(examples):
         if 'target' in examples:
             queries, targets = examples["text"], examples["target"]
+
+            """
+            for i, query in enumerate(queries):
+                query_ids = tokenizer(query)
+                if len(query_ids) > max_length:
+                    print(query)
+                    query_ids = tokenizer(query, truncation=True, max_length=max_length - 100)
+                    query = tokenizer.decode(query_ids)
+                    queries[i] = query
+                    print(query)
+                    sys.exit()
+            """
             inputs = [f"{queries[i]}\n{targets[i]}" for i in range(len(examples['text']))]
         else:
             inputs = examples["text"]

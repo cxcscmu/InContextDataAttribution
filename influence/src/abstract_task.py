@@ -204,6 +204,7 @@ def validate_task(
     if not all(list(influence_module_exists_dict.values())):
         error_msg = (
             f"Some provided influence modules were not found. The found mapping: "
+            f"{list(influence_module_exists_dict.keys())}."
             f"{list(influence_module_exists_dict.values())}."
         )
         if logger is not None:

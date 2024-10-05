@@ -4,8 +4,7 @@ from typing import Any, List, Union
 import torch
 import torch.nn as nn
 
-from transformers import AutoModelForCausalLM
-
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from src.abstract_computer import AbstractComputer
 from src.abstract_task import AbstractTask
@@ -138,7 +137,8 @@ class TracinComputer(AbstractComputer):
         train_loader: torch.utils.data.DataLoader,
         checkpoints: List[str],
         lrs: Union[int, float, List[int], List[float]] = 1.0,
-        model_dtype: str = 'float16'
+        model_dtype: str = 'float16',
+        tokenizer: AutoTokenizer = None,
     ) -> torch.Tensor:
         """Compute pairwise similarity scores between `test_loader` and `train_loader`.
 
@@ -168,6 +168,7 @@ class TracinComputer(AbstractComputer):
 
         for i, ckpt in enumerate(checkpoints):
             self._load_checkpoint(ckpt, model_dtype)
+            #self.model.model.resize_token_embeddings(len(tokenizer))
             gsc = GradientSimilarityComputer(
                 model=self.model,
                 task=self.task,
