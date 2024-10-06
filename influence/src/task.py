@@ -27,6 +27,7 @@ class LanguageModelTask(AbstractTask):
         sample: bool = False,
         reduction: str = "sum",
     ) -> torch.Tensor:
+
         if parameter_and_buffer_dicts is None:
             inputs = (
                 batch["input_ids"].to(self.device),
@@ -35,6 +36,7 @@ class LanguageModelTask(AbstractTask):
             lm_logits = model(*inputs)
         else:
             params, buffers = parameter_and_buffer_dicts
+            print(params)
             lm_logits = torch.func.functional_call(
                 model,
                 (params, buffers),
@@ -44,6 +46,14 @@ class LanguageModelTask(AbstractTask):
                 ),
             )
             batch["labels"] = batch["labels"].unsqueeze(0).to(self.device)
+
+        """
+        inputs = (
+                batch["input_ids"].to(self.device),
+                batch["attention_mask"].to(self.device),
+            )
+        lm_logits = model(*inputs)
+         """
 
         # [batch_size, seq_len, vocab_size]
         batch_size = lm_logits.shape[0]
@@ -128,8 +138,8 @@ class LanguageModelTask(AbstractTask):
 
         if self.layers is None:
             #layer_idxs = list(range(16))
-            #layer_idxs = list(range(28))
-            layer_idxs = list(range(0, 32, 4))
+            layer_idxs = list(range(28))
+            #layer_idxs = list(range(0, 32, 4))
         else:
             layer_idxs = self.layers
 
@@ -142,24 +152,24 @@ class LanguageModelTask(AbstractTask):
 
         # Add attention layers:
         for i in layer_idxs:
-            total_modules.append(f"model.gpt_neox.layers.{i}.attention.query_key_value")
-            total_modules.append(f"model.gpt_neox.layers.{i}.attention.dense")
-            #total_modules.append(f"model.model.layers.{i}.self_attn.o_proj")
+            #total_modules.append(f"model.gpt_neox.layers.{i}.attention.query_key_value")
+            #total_modules.append(f"model.gpt_neox.layers.{i}.attention.dense")
+            total_modules.append(f"model.model.layers.{i}.self_attn.o_proj")
 
         # Add MLP layers:``
         for i in layer_idxs:
-            total_modules.append(f"model.gpt_neox.layers.{i}.mlp.dense_h_to_4h")
-            total_modules.append(f"model.gpt_neox.layers.{i}.mlp.dense_4h_to_h")
-            #total_modules.append(f"model.model.layers.{i}.mlp.up_proj")
-            #total_modules.append(f"model.model.layers.{i}.mlp.down_proj")
+            #total_modules.append(f"model.gpt_neox.layers.{i}.mlp.dense_h_to_4h")
+            #total_modules.append(f"model.gpt_neox.layers.{i}.mlp.dense_4h_to_h")
+            total_modules.append(f"model.model.layers.{i}.mlp.up_proj")
+            total_modules.append(f"model.model.layers.{i}.mlp.down_proj")
         
         #total_modules = ['model.embed_out']
         #total_modules = ['model.lm_head']
         return total_modules
 
     def representation_module(self) -> str:
-        #return "model.model.norm"
-        return "model.gpt_neox.final_layer_norm"
+        return "model.model.norm"
+        #return "model.gpt_neox.final_layer_norm"
 
     def get_activation_masks(self, batch: Any) -> Optional[torch.Tensor]:
         return batch["attention_mask"].unsqueeze(-1).to(self.device)

@@ -62,12 +62,16 @@ def construct_model(model_name) -> nn.Module:
 def get_tokenizer(model):
     tokenizer = AutoTokenizer.from_pretrained(model, use_fast=True, trust_remote_code=True)
     
+    if not tokenizer.pad_token:
+        tokenizer.add_special_tokens({"pad_token": tokenizer.eos_token})
+
+    """
     if tokenizer.pad_token:
         pad_token = tokenizer.pad_token
     else:
         pad_token = "<|pad|>"
         tokenizer.add_special_tokens({"pad_token": pad_token})
-    
+    """
     return tokenizer
     
 def get_loaders(
@@ -168,6 +172,7 @@ def get_dataloader(
                     print(query)
                     sys.exit()
             """
+
             inputs = [f"{queries[i]}\n{targets[i]}" for i in range(len(examples['text']))]
         else:
             inputs = examples["text"]

@@ -1,3 +1,4 @@
+: '
 name="alpaca-1-of-18"
 task="alpaca-1-of-18"
 sbatch --job-name=$name \
@@ -233,3 +234,11 @@ sbatch --job-name=$name \
        /home/cljiao/heuristic-data/alpaca_data/${task}.tsv \
        /data/user_data/cljiao/paper_outputs/infl_scores/kmeans_alpaca_2.8/${task}.pt
 '
+
+name="alpaca-1-of-18"
+task="alpaca-1-of-18"
+bash infl_ip_template.sh \
+       meta-llama/Llama-3.2-3B \
+       meta-llama/Llama-3.2-3B \
+       /home/cljiao/heuristic-data/alpaca_data/${task}.tsv \
+       /data/user_data/cljiao/paper_outputs/infl_scores/kmeans_alpaca_llama/${task}.pt

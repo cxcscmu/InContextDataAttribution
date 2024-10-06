@@ -72,13 +72,17 @@ class AbstractComputer(ABC):
             batch (Any):
                 The batch of data on which the loss will be computed.
         """
-        return self.task.get_train_loss(
+        
+        loss = self.task.get_train_loss(
             model=self.model,
             batch=batch,
             parameter_and_buffer_dicts=(params, buffers),
             sample=False,
             reduction="sum",
         )
+        print(loss)
+        print(loss.requires_grad)
+        return loss
 
     def _compute_train_loss_grad(self) -> Callable:
         """Returns the function that computes gradients of loss w.r.t. parameters."""

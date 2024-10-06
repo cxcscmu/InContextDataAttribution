@@ -2,6 +2,7 @@ from typing import Any, Dict
 
 import torch
 import torch.nn as nn
+import sys
 
 from src.abstract_computer import AbstractComputer
 from src.abstract_task import AbstractTask
@@ -118,6 +119,14 @@ class GradientSimilarityComputer(AbstractComputer):
     ) -> Dict[str, torch.Tensor]:
         """Given a batch, compute the individual gradient and reshape it into a 2D matrix."""
         batch_size = self.task.get_batch_size(batch)
+
+        print(self.func_params)
+        grad_func = self._compute_train_loss_grad()
+        grads = grad_func(self.func_params, self.func_buffers, batch)
+        #print(grads)
+        sys.exit()
+
+        """
         grads_dict = torch.func.vmap(
             self._compute_measurement_grad()
             if use_measurement
@@ -125,6 +134,8 @@ class GradientSimilarityComputer(AbstractComputer):
             in_dims=(None, None, 0),
             randomness="different",
         )(self.func_params, self.func_buffers, batch)
+        """
+
         with torch.no_grad():
             reshaped_grads_dict = {}
             key_list = list(grads_dict.keys())
