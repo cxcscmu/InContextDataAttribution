@@ -45,7 +45,9 @@ python one_step_trainer.py \
        --max_seq_length 256 \
        --fsdp false \
        --eval_conditional true \
-       --load_local_data true
+       --load_local_data true \
+       --train_start_idx $6 \
+       --n_train_samples $7
 
 #results_file="/data/user_data/cljiao/paper_data/one-finetune-2e-5/$i.pt"
 #if ! test -f $results_file; then
