@@ -68,11 +68,21 @@ class GradientSimilarityComputer(AbstractComputer):
             for name in self.supported_param_names:
                 if isinstance(total_score, float):
                     score = torch.matmul(grads_dict1[name], grads_dict2[name].t())
-                    score = torch.log(score)                    
+                    
+                    sign = score.sign()
+                    score = score.abs_()
+                    score = torch.log(score)      
+                    score *= sign
+                    
                     total_score = torch.nan_to_num(score, nan=0.0, posinf=0.0, neginf=0.0) # deal with numeric complications
                 else:                    
                     score = torch.matmul(grads_dict1[name], grads_dict2[name].t())
-                    score = torch.log(score)                    
+                    
+                    sign = score.sign()
+                    score = score.abs_()
+                    score = torch.log(score)      
+                    score *= sign
+                    
                     score = torch.nan_to_num(score, nan=0.0, posinf=0.0, neginf=0.0) # deal with numeric complications
                     total_score.add_(score)
 
